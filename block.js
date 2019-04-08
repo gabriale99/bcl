@@ -47,7 +47,7 @@ module.exports = class Block {
     genesis.addTransaction(tx, true);
     return genesis;
   }
-
+  
   /**
    * Converts a string representation of a block to a new Block instance.
    * We assume that a serialized block intentended for deserialization
@@ -200,7 +200,27 @@ module.exports = class Block {
     // 2) Add newly created UTXOs to the UTXO set.
     // 3) Calculate the miner's transaction fee, determined by the difference between the inputs and the outputs.
     //    The addTransactionFee method might help you with this part.
+    this.transactions[tx.id] = tx;
+    let inputs = [];
+    for (let i = 0; i < tx.inputs.length; i++) {
+      if (this.utxos[tx.inputs[i].txID]) {
+        inputs.push(this.utxos[tx.inputs[i].txID][tx.inputs[i].outputIndex]);
+        delete this.utxos[tx.inputs[i].txID][tx.inputs[i].outputIndex];
+      }
+    }
+    // console.log(inputs);
 
+    this.utxos[tx.id] = [];
+    for (let i = 0; i < tx.outputs.length; i++) {
+      this.utxos[tx.id].push(tx.outputs[i]);
+    }
+
+
+    let totalOut = tx.totalOutput(), totalIn = 0;
+    inputs.forEach(input => {
+      totalIn += input.amount;
+    });
+    this.addTransactionFee(totalIn - totalOut);
   }
 
   /**

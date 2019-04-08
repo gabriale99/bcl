@@ -98,12 +98,32 @@ module.exports = class Wallet {
     //
     // Return an object containing the array of inputs and the
     // amount of change needed.
+    let inputs = [],
+        changeAmt = -1, // -1 to indicate the amt is unchanged
+        currentAmt = 0;
 
+    for (let i = 0; i < this.coins.length; i++) {
+      currentAmt = this.coins[i].output.amount;
+      if (currentAmt >= amount) {
+        changeAmt = currentAmt - amount;
+      } else {
+        amount -= currentAmt;
+      }
 
-    // Currently returning default values.
+      let txID = this.coins[i].txID;
+      let outputIndex = this.coins[i].outputIndex;
+      let pubKey = this.addresses[this.coins[i].output.address].public;
+      let sig = utils.sign(this.addresses[this.coins[i].output.address].private, this.coins[i].output);
+      inputs.push({ txID, outputIndex, pubKey, sig });
+      this.coins.shift();
+      if (changeAmt > -1) {
+        break;
+      }
+    }
+    
     return {
-      inputs: [],
-      changeAmt: 0,
+      inputs,
+      changeAmt
     };
 
   }
