@@ -120,7 +120,7 @@ module.exports = class Wallet {
         break;
       }
     }
-    
+
     return {
       inputs,
       changeAmt
